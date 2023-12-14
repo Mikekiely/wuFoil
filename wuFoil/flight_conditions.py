@@ -23,7 +23,7 @@ class FlightConditions:
     altitude = 0    # Altitude (ft)
     gamma = 1.4     # Gas Constant
 
-    def __init__(self, h: float, mach: float, length: float, aoa: float = None, cl: float = None):
+    def __init__(self, h: float, mach: float, length: float, aoa: float = None, cl: float = None, units='imperial'):
         # Set aoa, set it to default value and set cl if fixed cl mode
         if aoa or aoa == 0:
             self.aoa = aoa
@@ -42,6 +42,13 @@ class FlightConditions:
         L = 0.003575  # temp lapse rate (R/ft)
         R = 1716.5  # Gas Constant
         gamma = 1.4
+
+        if units.lower() == 'si':
+            ft2meters = 0.3048
+
+            self.length = length * ft2meters
+            g = g / ft2meters
+            
 
         t = t0 - L * h
         theta = t / t0
