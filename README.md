@@ -11,7 +11,7 @@ optimization and rapid sampling for machine learning databases.
 - Airfoil modelling from coordinate data files or CST Variables
 - Automatic c-blockmesh generation with gmsh
 
-<img src="Docs/Images/airfoil_bl_mesh.PNG" width="425"/> <img src="Docs/Images/domain_mesh.PNG" width="425"/> 
+<img src="Docs/Images/c_block_mesh.PNG" width="400"/> <img src="Docs/Images/airfoil_mesh.png" width="400"/>  
 
 - Automated Simulation runs in SU2 CFD or xfoil
 - Airfoil Optimization

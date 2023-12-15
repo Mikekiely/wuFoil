@@ -140,3 +140,4 @@ cython_debug/
 
 /flow.meta
 /flow.vtu
+/main.py
