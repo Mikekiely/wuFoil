@@ -1,14 +1,21 @@
+import logging
+
 import numpy as np
 
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 class FlightConditions:
     """
     Calculates atmospheric Conditions at given altitude and mach number
 
+    Cal
+
     Parameters
     -   h: Height (ft)
     -   mach: Mach number
     -   L: Characteristic Length
+    -   Units: 'ft' or 'm'
     """
 
     p = 0           # Pressure (lb/ft^2)
@@ -23,14 +30,22 @@ class FlightConditions:
     altitude = 0    # Altitude (ft)
     gamma = 1.4     # Gas Constant
 
-    def __init__(self, h: float, mach: float, length: float, aoa: float = None, cl: float = None, units='imperial'):
-        # Set aoa, set it to default value and set cl if fixed cl mode
+    def __init__(self, h: float, mach: float, length: float, aoa: float = None, cl: float = None, input_units: str = 'ft'):
+        # Calculates everything in imperial then converts it back to SI
+
+        # TODO: Make flight conditions calculate in metric, this is stupid
         if aoa or aoa == 0:
             self.aoa = aoa
             self.cl = None
         elif cl or cl == 0:
             self.aoa = 1
             self.cl = cl
+        else:
+            logging.warning('Please set either angle of attack or Cl before running any analysis')
+
+        if input_units == 'm':
+            length *= .3048
+            h *= .3048
 
         # Constants
         self.length = length
@@ -42,13 +57,6 @@ class FlightConditions:
         L = 0.003575  # temp lapse rate (R/ft)
         R = 1716.5  # Gas Constant
         gamma = 1.4
-
-        if units.lower() == 'si':
-            ft2meters = 0.3048
-
-            self.length = length * ft2meters
-            g = g / ft2meters
-            
 
         t = t0 - L * h
         theta = t / t0
@@ -82,4 +90,22 @@ class FlightConditions:
         self.mach = mach
         self.q = .5 * self.rho * self.v ** 2
         self.altitude = h
+        self.re = self.rho * self.v * self.length / self.mu
+        self._to_SI()
+
+    def _to_SI(self):
+        """
+        Converts to metric units for input into SU2
+        Really all that matters here is freestream pressure and temperature
+        """
+        ft2meters = .3048
+        self.p *= 47.8803       # Pascals
+        self.rho *= 515.379     # Kg/m^3
+        self.v *= ft2meters     # m/s
+        self.t *= 5/9           # Kelvin
+        self.mu *= 1/.0208854
+        self.a *= ft2meters
+        self.q = .5 * self.rho * self.v ** 2
+        self.altitude *= ft2meters
+        self.length *= ft2meters
         self.re = self.rho * self.v * self.length / self.mu

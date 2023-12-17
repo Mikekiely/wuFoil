@@ -2,7 +2,7 @@ import csv
 import multiprocessing as mp
 from wuFoil.airfoil import Airfoil, cst_Airfoil, get_cst_variables
 from wuFoil.analysis import SU2_Analysis
-from wuFoil.parallel_computation import analyze_batch
+from wuFoil.parallel_computing import analyze_batch
 import numpy as np
 import uuid
 
@@ -22,9 +22,10 @@ def main():
     # Likely you would want to use a list of predefined airfoils and randomly select one to randomize
     base_airfoil = 'rae2822.dat'
 
-    base_altitude = 330000
+    base_altitude = 33000
     base_mach = .8
     base_cl = .65
+    chord_length = 1
 
     # get cst variables of rae2822
     af = Airfoil(base_airfoil)
@@ -48,11 +49,10 @@ def main():
                 cl = np.random.normal(base_cl, .2, 1)[0]
                 mach = np.random.normal(base_mach, .05, 1)[0]
                 altitude = np.random.normal(base_altitude, 4000, 1)[0]
-
                 airfoils.append(cst_Airfoil(a))
                 airfoils[i].set_flight_conditions(altitude, mach, cl=cl)
             # run parallelized batch analysis
-            cd, cl, aoa = analyze_batch(airfoils, analysis_method='xfoil')
+            cd, cl, aoa = analyze_batch(airfoils, analysis_method='SU2')
             lines = [[a[i], [cd[i], cl[i], airfoils[i].flight_conditions.re]] for i in range(batch_size)]
 
 

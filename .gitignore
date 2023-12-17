@@ -141,3 +141,8 @@ cython_debug/
 /flow.meta
 /flow.vtu
 /main.py
+/airfoil.cfg
+/airfoil.su2
+/surface_flow.csv
+/Scripts/flow.meta
+/Scripts/flow.vtu

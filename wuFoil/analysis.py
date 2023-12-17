@@ -74,6 +74,15 @@ class SU2_Analysis:
         Run analysis with preset parameters
         """
 
+        # Check if airfoil mesh exists, create it if it doesn't
+        # if not os.path.exists(f'{self.prefix}.su2'):
+        #     logger.error(f'Mesh file {self.prefix}.su2 not found in folder')
+        #     return
+
+        # print(os.path.exists(f'{self.prefix}.su2'))
+        if not os.path.exists(f'{self.prefix}.su2'):
+            self.airfoil.generate_mesh(show_graphics=False, hide_output=True)
+
         self.write_cfg_file()
 
         # Create commands to run SU2
@@ -263,12 +272,10 @@ class xfoil_analysis:
             if self.hide_output:
                 common_args['stdout'] = subprocess.DEVNULL
 
-            process = subprocess.Popen('xfoil', **common_args)
+            process = subprocess.call(['xfoil', '/c', keystrokes], **common_args)
         except FileNotFoundError:
             logger.error('Xfoil.exe file not found, please add to working directory or add xfoil to environment variables')
             return
-
-        output, _ = process.communicate(input=keystrokes)
 
         os.remove(f"{self.prefix}_xfoil.dat")
 

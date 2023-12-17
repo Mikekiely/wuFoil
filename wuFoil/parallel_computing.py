@@ -65,6 +65,7 @@ def analyze_batch(airfoils: list[Airfoil], n_processes: int = None, analysis_met
     Parameters:
     -   airfoils: <list(airfoil objects)> list of airfoils to be analyzed
     -   output_file: <str> csv file  to output values to, won't output to a file if no file is inputted
+                    Add headers to file
     -   n_processes: number of parallel processes to run, defaults to number of available processors
     -   altitude: Altitude at which the airfoil is operating. Either a constant value for all airfoils or a list of values
     -   analysis_method: Type of analysis run. 'SU2' or 'xfoil'
