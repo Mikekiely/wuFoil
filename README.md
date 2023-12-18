@@ -195,4 +195,5 @@ This project is still very much a work in progress. I am finishing up my phd rig
 - Optimization: Its easy enough to run this code with gp_minimize from scikit-optimize or something similar, however I would like to add a built in Particle Swarm Optimization method. With parallel computation handling batches of airfoils, this method should be lightning fast
 - Airfoil Parameterization Methods: CST Parameterization works well enough for optimization but lacks any real physical meaning. I plan on adding NURBS parameterization and possibly a few more methods
 - Automatic Drag Polar Generation: Automatically generate drag polars. Will be added relatively soon
+
 Feel free to contact me at k.mike@wustl.edu if you have any suggestions for the code
