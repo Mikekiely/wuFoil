@@ -12,6 +12,8 @@ def generate_mesh(airfoil, show_graphics: bool = True, output_format: str = '.su
     Creates C-block mesh around airfoil using gmsh
     stores result in file airfoil.su2
 
+    All units normalized by chord length
+
     Uses the dictionary mesh_parameters to model mesh
     Interpolates airfoil using cubic splines across whole closed loop for accuracy
 
@@ -30,11 +32,11 @@ def generate_mesh(airfoil, show_graphics: bool = True, output_format: str = '.su
     -   show_graphics: <bool> yes or no show gmsh gui
     -   output_format: <str> format of mesh to output (not currently used)
     """
-    length_le = airfoil.mesh_parameters.leading_edge_length
-    te_thickness = airfoil.mesh_parameters.trailing_edge_thickness
-    r_inlet = airfoil.mesh_parameters.inlet_radius
-    downstream_distance = airfoil.mesh_parameters.downstream_distance
-    first_layer_thickness = airfoil.mesh_parameters.first_cell_thickness
+    length_le = airfoil.mesh_parameters.leading_edge_length * airfoil.chord_length
+    te_thickness = airfoil.mesh_parameters.trailing_edge_thickness  * airfoil.chord_length
+    r_inlet = airfoil.mesh_parameters.inlet_radius * airfoil.chord_length
+    downstream_distance = airfoil.mesh_parameters.downstream_distance * airfoil.chord_length
+    first_layer_thickness = airfoil.mesh_parameters.first_cell_thickness * airfoil.chord_length
     n_airfoil = airfoil.mesh_parameters.n_airfoil
     n_volume = airfoil.mesh_parameters.n_volume
     n_wake = airfoil.mesh_parameters.n_wake
@@ -239,13 +241,12 @@ def generate_mesh(airfoil, show_graphics: bool = True, output_format: str = '.su
     os.replace(temp_file_path, file_path)
 
 
-
 class mesh_parameters:
     """
     Stores variables used for meshing
     """
     def __init__(self):
-        self.first_cell_thickness = 1e-3     # Desired thickness at first layer on boundary layer
+        self.first_cell_thickness = 1e-5     # Desired thickness at first layer on boundary layer
         self.trailing_edge_thickness = 5e-2  # Desired cell thickness at trailing edge
         self.inlet_radius = 15               # Radius of the inlet, defines domain length to the front, top and bottom of airfoil
         self.downstream_distance = 25        # Domain length downstream of airfoil

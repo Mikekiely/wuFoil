@@ -103,9 +103,12 @@ class SU2_Analysis:
             except subprocess.TimeoutExpired:
                 proc.kill()
                 out, errs = proc.communicate()
-
+        except FileNotFoundError:
+            logger.error(f'SU2_RUN not found in environment variables')
+            return
         except Exception as e:
             logger.warning(f'Unknown error occured: {e}')
+            return
 
         self.read_output()
 
@@ -226,6 +229,7 @@ class xfoil_analysis:
             self.aoa = [airfoil.flight_conditions.aoa]
             self.cl = [airfoil.flight_conditions.cl]
         self.max_iter = max_iter
+        self.re = self.flight_conditions.re
 
     def run_analysis(self):
         """

@@ -71,8 +71,8 @@ class Airfoil:
         self.chord_length = chord_length
         # self.set_tc_camber()
 
-    def set_flight_conditions(self, altitude, mach, aoa = None, cl = None):
-        self.flight_conditions = FlightConditions(altitude, mach, self.chord_length, aoa=aoa, cl=cl)
+    def set_flight_conditions(self, altitude, mach, aoa = None, cl = None, input_units='ft'):
+        self.flight_conditions = FlightConditions(altitude, mach, self.chord_length, aoa=aoa, cl=cl, input_units=input_units)
 
     def read_input(self, dat_file: str):
         """
@@ -292,24 +292,25 @@ class Airfoil:
         self.lower_surface = lower_surface
         self.points = upper_surface[:-1] + lower_surface
 
-    def set_desired_yplus(self, y_plus: float, altitude: float, mach: float):
+    def set_desired_yplus(self, y_plus: float):
         """
         Sets cell thickness at the first layer of the boundary layer to reach the desired y+ value
         Equations found here: https://www.cfd-online.com/Wiki/Y_plus_wall_distance_estimation
 
         Parameters:
         y_plus: <float> Desired y+ value at boundary layer, typically ~1.0
-        chord_length: <float> Chord length of airfoil, used for reynolds number calculation
-        altitude, mach: <float> flight conditions for determining atmospheric conditions
 
         Returns:
             first_cell_thickness: thickness of first cell
         """
-        fc = FlightConditions(altitude, mach, self.chord_length)
+        if not self.flight_conditions:
+            logger.error('Please set flight conditions first')
+            return
+        fc = self.flight_conditions
         cf = (2 * np.log10(fc.re) - .65) ** -2.3    # skin friction coefficient
         tau_w = cf * .5 * fc.rho * fc.v ** 2        # Wall shear stress
         u_star = np.sqrt(tau_w / fc.rho)            # Friction velocity
-        y = y_plus * fc.mu / (fc.rho * u_star)      # First cell thickness
+        y = y_plus * fc.mu / (fc.rho * u_star) / self.chord_length     # First cell thickness
         self.mesh_parameters.first_cell_thickness = y
         return y
 
