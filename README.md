@@ -61,7 +61,8 @@ highly advantageous for modelling airfoils for a variety of reasons, for more in
 '[A Universal Parametric Geometry Representation Method - "CST"](https://doi.org/10.2514/6.2007-62)'. This method is used
 mainly used for optimization and modelling using machine learning regression methods. To initialize a cst airfoil, simply 
 use initiate an object of the class wuFoil.cst_Airfoil with a list of cst variables [a0, a1, ... an] along with the previously
-explained parameters. Any amount of cst variables can be used with even numbers representing a trailing edge y/c value of 0
+explained parameters. Note that cst variables are formatted as a list with the lower cst variables first then the upper 
+cst variables. Any amount of cst variables can be used with even numbers representing a trailing edge y/c value of 0
 and odd numbers representing the y/c value at the trailing edge with the last value.
 
 Alternatively, the CST variables of an airfoil initialized using a data file can be found using the wuFoil.get_cst_variables
@@ -148,29 +149,45 @@ Several airfoils at once can be analyzed using python's MultiProcessing library 
 each airfoil must be fully initialized then passed into the function as a part of a list. An example of this code can be 
 seen below. Analysis variables can be altered using the analysis_parameters parameter. Additionally, the results can be 
 printed to a csv file for further analysis. For a script used to sample random CST airfoils for use in a machine learning
-database, see Scripts/Parallel_Sampling
+database, see Scripts/Parallel_Sampling.
+
+A few notes on outputting to a csv file. First, 'iter' can be selected as an output variable to list the iteration of each
+tested airfoil. However, in order to speed up multiprocessing, results are printed to the output file as they are obtained,
+meaning the results won't necessarily be sorted by iteration. To sort them by ascending iteration or by any other value, 
+use the sort_output_by parameter. Secondly, if 'cst_variables' is selected as an output, the cst variables will be listed
+as the last values on the csv file in ascending order.
 
 ```python
-import wuFoil as wf
-import numpy as np
 # Analyzes rae 2822 airfoil at 20 different mach numbers in parallel
-af_file = 'rae2822.dat'
-aoa = 2
-chord_length=1
-batch_size = 20
+if __name__ == '__main__':  # Note: this is good practice typically, but when using multiprocessing is absolutely required
+    import wuFoil as wf
+    import numpy as np
 
-airfoils = []
-for i, mach in enumerate(np.linspace(.25, .9, batch_size)):
-    airfoils.append(wf.airfoil(af_file), chord_length=chord_length)
-    airfoils[i].set_flight_conditions(35000, mach, aoa=aoa, input_units='ft')
+    # Analyzes rae 2822 airfoil at 20 different mach numbers in parallel
+    af_file = 'rae2822.dat'
+    aoa = 2
+    chord_length = 1
+    batch_size = 10
+    airfoils = []
 
-wf.analyze_batch(airfoils,
-                 n_processes=None,  # Leave as None (default value) to use all available processors
-                 analysis_method='SU2',
-                 analysis_parameters={'Solver': 'Euler',
-                                      'Convergence': 1e-6,
-                                      'hide_output': True},
-                 output_file='rae2822_mach_sweep_results.csv')
+    af = wf.Airfoil(af_file)
+    a = wf.get_cst_variables(af, plot_airfoil=False)
+
+    for i, mach in enumerate(np.linspace(.25, .9, batch_size)):
+        airfoils.append(wf.cst_Airfoil(a, chord_length=chord_length, name=f'Mach_{mach}'))
+        airfoils[i].set_flight_conditions(35000, mach, aoa=aoa, input_units='ft')
+
+    cd, cl, aoa = wf.analyze_batch(airfoils,
+                                   n_processes=None,  # Leave as None (default value) to use all available processors
+                                   analysis_method='SU2',
+                                   analysis_parameters={'Solver': 'Euler',
+                                                        'Convergence': 1e-6,
+                                                        'hide_output': True},
+                                   output_file='rae2822_mach_sweep_results.csv',
+                                   output_parameters=['cst_variables', 'iter', 're', 'cl', 'cd', 'mach', 'aoa'],
+                                   sort_output_by='iter')
+
+    print(cd)
 ```
 
 
@@ -182,6 +199,7 @@ Requirements
 - [gmsh](https://pypi.org/project/gmsh/)
 - [scipy](https://pypi.org/project/scipy/)
 - [matplotlib](https://pypi.org/project/matplotlib/)
+- [pandas](https://pandas.pydata.org/)
 - [xfoil](https://web.mit.edu/drela/Public/web/xfoil/) (Make sure xfoil.exe file is in working directory)
 - [SU2](https://su2code.github.io/) (make sure to set up SU2_RUN environment variable as mentioned in installation instructions [here](https://su2code.github.io/docs_v7/SU2-Windows/))
 

@@ -146,3 +146,5 @@ cython_debug/
 /surface_flow.csv
 /Scripts/flow.meta
 /Scripts/flow.vtu
+/rae2822.dat
+/rae2822_mach_sweep_results.csv

@@ -340,6 +340,7 @@ class cst_Airfoil(Airfoil):
     a_l = []
     a_u = []
     yte = 0
+    cst_variables = []
 
     def __init__(self, cst_variables: list[float], chord_length: float = 1, n_airfoil: int = 100,
                  leading_edge_refinement : bool = True, name='airfoil'):
@@ -360,6 +361,7 @@ class cst_Airfoil(Airfoil):
         """
         # Set cst variables
         # Handle parameters with specified trailing edge height
+        self.cst_variables = cst_variables
         if len(cst_variables) % 2 == 1:
             self.yte = cst_variables[-1]
             a = cst_variables[:-1]
