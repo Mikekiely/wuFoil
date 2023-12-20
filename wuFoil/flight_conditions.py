@@ -35,11 +35,11 @@ class FlightConditions:
 
         # TODO: Make flight conditions calculate in metric, this is stupid
         if cl or cl == 0:
-            self.aoa = aoa
-            self.cl = None
-        elif aoa or aoa == 0:
             self.aoa = 1
             self.cl = cl
+        elif aoa or aoa == 0:
+            self.aoa = aoa
+            self.cl = None
         else:
             logging.warning('Please set either angle of attack or Cl before running any analysis')
 
