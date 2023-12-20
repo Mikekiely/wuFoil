@@ -54,8 +54,8 @@ class Airfoil:
     x_mc = 0
     max_thickness = 0
     x_tc = 0
-    flight_conditions = []  # Only used for setting y+
-    mesh_parameters = []
+    flight_conditions = None  # Only used for setting y+
+    mesh_parameters = None
 
     def __init__(self, dat_file: str, chord_length=1, name='airfoil'):
         """
@@ -471,6 +471,19 @@ class cst_Airfoil(Airfoil):
         y = s * x ** .5 * (1 - x) ** 1 + x * self.yte / 2
         return y
 
+    def update_cst_variables(self, cst_variables, n_airfoil: int = 100,
+                 leading_edge_refinement : bool = True):
+        self.cst_variables = cst_variables
+        if len(cst_variables) % 2 == 1:
+            self.yte = cst_variables[-1]
+            a = cst_variables[:-1]
+        else:
+            a = cst_variables
+
+        mid = len(a) // 2
+        self.a_l = a[:mid]
+        self.a_u = a[mid:]
+        self.set_cst_shape(n_airfoil=n_airfoil, leading_edge_refinement=leading_edge_refinement)
 
 def get_cst_variables(airfoil, tol: float = 1e-9, n_vars: int = 9,
                       a_guess = None, plot_airfoil: bool = False):

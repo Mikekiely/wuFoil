@@ -43,7 +43,7 @@ def generate_mesh(airfoil, show_graphics: bool = True, output_format: str = '.su
     n_leading_edge = airfoil.mesh_parameters.n_leading_edge
     center = (length_le, 0, 0)
     te = airfoil.upper_surface[0]
-    points = airfoil.points
+    points = [[x * airfoil.chord_length for x in coords] for coords in airfoil.points]
 
     # Split airfoil into 3 segments - upper, lower, and leading_edge. Create list of points in each
     upper_aft_started = True
