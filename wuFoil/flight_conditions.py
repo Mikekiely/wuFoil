@@ -34,10 +34,10 @@ class FlightConditions:
         # Calculates everything in imperial then converts it back to SI
 
         # TODO: Make flight conditions calculate in metric, this is stupid
-        if aoa or aoa == 0:
+        if cl or cl == 0:
             self.aoa = aoa
             self.cl = None
-        elif cl or cl == 0:
+        elif aoa or aoa == 0:
             self.aoa = 1
             self.cl = cl
         else:
