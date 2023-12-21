@@ -1,5 +1,8 @@
 import multiprocessing as mp
 import logging
+
+import pandas as pd
+
 from wuFoil.airfoil import cst_Airfoil, Airfoil
 from wuFoil.analysis import SU2_Analysis, xfoil_analysis
 import uuid
@@ -18,6 +21,16 @@ def _test_sample(af, method, params, i, output_file=None, output_parameters=None
     """
     prefix = str(uuid.uuid4())
     af.name = prefix
+
+    # Check for bad airfoil geometry
+    for point_l, point_u in zip(af.lower_surface, reversed(af.upper_surface)):
+        if point_l[1] > point_u[1]:
+            logger.warning('Bad Airfoil Geometry')
+            return None, None, None
+
+    if af.lower_surface[1][1] > 0 or af.upper_surface[1][1] < 0:
+        logger.warning(('Bad Airfoil Geometry'))
+        return None, None, None
 
     # Initiate analysis
     if method.startswith('SU2'):
@@ -86,7 +99,8 @@ def _test_sample(af, method, params, i, output_file=None, output_parameters=None
 def analyze_batch(airfoils: list[Airfoil], n_processes: int = None, analysis_method: str = 'SU2',
                   analysis_parameters: dict = {}, output_file: str = None,
                   output_parameters: list = ['cst_variables', 'cd', 'cl', 'aoa', 'mach', 're'],
-                  sort_output_by: str = None):
+                  sort_output_by: str = None,
+                  ):
     """
     Analyzes a group of airfoils using multiprocessing
     aoa, and cl can either be entered as a constant value for all airfoils or as a list of values,
@@ -160,6 +174,8 @@ def analyze_batch(airfoils: list[Airfoil], n_processes: int = None, analysis_met
                 headers_csv = next(reader, [])
 
                 # Check if headers in prexisting file match output parameters
+                # print(headers_csv)
+                # print(headers)
                 if headers_csv != headers:
                     logger.error(f'Headers in pre existing csv file do not match desired output parameters')
                     return
@@ -178,6 +194,11 @@ def analyze_batch(airfoils: list[Airfoil], n_processes: int = None, analysis_met
                     for i, af in enumerate(airfoils)]
         results = pool.starmap(_test_sample, arg_list, )
         pool.close()
+
+    if sort_output_by:
+        df = pd.read_csv(output_file)
+        df_sorted = df.sort_values(by=sort_output_by)
+        df_sorted.to_csv(output_file, index=False)
     cd = [res[0] for res in results]
     cl = [res[1] for res in results]
     aoa = [res[2] for res in results]
