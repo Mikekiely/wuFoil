@@ -94,8 +94,8 @@ def generate_mesh(airfoil, show_graphics: bool = True, output_format: str = '.su
 
     # Define points in airfoil in gmsh, create splines
     af_upper_points = [model.addPoint(x, y, z) for x, y, z in af_upper_pointdata]
-    af_lower_points = [model.addPoint(x, y, z) for x, y, z in af_lower_pointdata]
     af_le_points = [model.addPoint(x, y, z) for x, y, z in af_le_pointdata]
+    af_lower_points = [model.addPoint(x, y, z) for x, y, z in af_lower_pointdata]
 
     # Reinsert redundant points, set end points as equal to each other for meshing purposes
     af_top_point = af_le_points[0]
@@ -125,7 +125,7 @@ def generate_mesh(airfoil, show_graphics: bool = True, output_format: str = '.su
     inlet_section = model.addPlaneSurface([inlet_loop])
 
     # Top Section
-    top_te_point = model.addPoint(1, r_inlet, 0)
+    top_te_point = model.addPoint(af_upper_pointdata[0][0], r_inlet, 0)
     top_line = model.addLine(top_te_point, inlet_top_point)
     topTe_afTe = model.addLine(top_te_point, af_te_point)
 
@@ -133,7 +133,7 @@ def generate_mesh(airfoil, show_graphics: bool = True, output_format: str = '.su
     top_section = model.addPlaneSurface([top_loop])
 
     # Bottom Section
-    bottom_te_point = model.addPoint(1, -r_inlet, 0)
+    bottom_te_point = model.addPoint(af_upper_pointdata[0][0], -r_inlet, 0)
     bottom_line = model.addLine(inlet_bottom_point, bottom_te_point)
     afTe_bottomTe = model.addLine(af_te_point, bottom_te_point)
 
@@ -191,6 +191,7 @@ def generate_mesh(airfoil, show_graphics: bool = True, output_format: str = '.su
 
     # Top Wake Section
     target_thickness = (1 - length_le) / n_airfoil
+    target_thickness = airfoil.mesh_parameters.trailing_edge_thickness
     growth = 1 / np.exp(np.log(target_thickness) / (n_wake - 1))
     model.mesh.setTransfiniteCurve(top_wake_line, n_wake, "Progression", -growth)
     model.mesh.setTransfiniteCurve(center_wake_line, n_wake, "Progression", growth)
@@ -204,7 +205,7 @@ def generate_mesh(airfoil, show_graphics: bool = True, output_format: str = '.su
     model.mesh.setTransfiniteSurface(bottom_wake_section)
     model.mesh.setRecombine(2, bottom_wake_section)
 
-    model.addPhysicalGroup(1, [af_upper, af_le, af_lower], name='Airfoil')
+    model.addPhysicalGroup(1, [af_le, af_lower, af_upper], name='Airfoil')
     model.addPhysicalGroup(1, [outlet_top, outlet_bottom, top_line, top_wake_line, bottom_line, bottom_wake_line], name='Outlet')
     model.addPhysicalGroup(1, [front_line], name='Inlet')
 
