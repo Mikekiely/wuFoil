@@ -138,27 +138,29 @@ class SU2_Analysis:
                 elif line.startswith('FREESTREAM_TEMPERATURE'):
                     line = f'FREESTREAM_TEMPERATURE= {self.flight_conditions.t}\n'
                 elif line.startswith('REYNOLDS_NUMBER'):
-                    line = f'REYNOLDS_NUMBER= {self.flight_conditions.re}\n'
+                    line = f'REYNOLDS_NUMBER= {self.re}\n'
                 elif line.startswith('REYNOLDS_LENGTH'):
-                    line = f'REYNOLDS_LENGTH= {self.airfoil.chord_length}\n'
+                    line = f'REYNOLDS_LENGTH= {self.flight_conditions.length}\n'
                 elif line.startswith('REF_ORIGIN_MOMENT_X'):
-                    line = f'REF_ORIGIN_MOMENT_X= {.25*self.airfoil.chord_length}\n'
+                    line = f'REF_ORIGIN_MOMENT_X= {.25*self.flight_conditions.length}\n'
                 elif line.startswith('REF_LENGTH'):
-                    line = f'REF_LENGTH= {self.airfoil.chord_length}\n'
+                    line = f'REF_LENGTH= {self.flight_conditions.length}\n'
                 elif line.startswith('REF_AREA'):
-                    line = f'REF_AREA= {self.airfoil.chord_length}\n'
+                    line = f'REF_AREA= {self.flight_conditions.length}\n'
                 elif line.startswith('ITER') and not line.startswith('ITER_'):
                     line = f'ITER= {self.max_iter}\n'
                 elif line.startswith('CONV_RESIDUAL_MINVAL'):
                     line = f'CONV_RESIDUAL_MINVAL= {self.convergence}\n'
                 elif line.startswith('CONV_FILENAME'):
                     line = f'CONV_FILENAME= {self.prefix}_history\n'
-                elif line.startswith('MESH_FILENAME'):
-                    line = f'MESH_FILENAME= {self.prefix}.su2\n'
+                # elif line.startswith('MESH_FILENAME'):
+                #     line = f'MESH_FILENAME= {self.prefix}.su2\n'
                 elif line.startswith('FIXED_CL_MODE') and self.cl:
                     line = f'FIXED_CL_MODE= YES\n'
                 elif line.startswith('TARGET_CL') and self.cl:
                     line = f'TARGET_CL= {self.flight_conditions.cl}\n'
+                elif line.startswith('DV_VALUE'):
+                    line = f'DV_VALUE= {self.flight_conditions.length}\n'
                 f.writelines(line)
 
     def read_output(self):
@@ -174,6 +176,8 @@ class SU2_Analysis:
             self.cd = df['"CD"'].iloc[-1]
             self.cl = df['"CL"'].iloc[-1]
             self.aoa = df['"AoA"'].iloc[-1]
+        else:
+            print('convergence failed')
 
 
 class xfoil_analysis:

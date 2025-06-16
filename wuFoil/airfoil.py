@@ -1,5 +1,7 @@
 import logging
 import numpy as np
+import math
+np.math = math
 import matplotlib.pyplot as plt
 from scipy.interpolate import splprep, splev
 from scipy.optimize import minimize
@@ -73,6 +75,8 @@ class Airfoil:
 
     def set_flight_conditions(self, altitude, mach, aoa = None, cl = None, input_units='ft'):
         self.flight_conditions = FlightConditions(altitude, mach, self.chord_length, aoa=aoa, cl=cl, input_units=input_units)
+        # if input_units=='ft':
+        #     self.chord_length *= .3048
 
     def read_input(self, dat_file: str):
         """
@@ -320,6 +324,24 @@ class Airfoil:
         # Let me know if this is bad practice, it seems fine to me I don't want to write a multi hundred line code here
         generate_mesh(self, show_graphics=show_graphics, output_format=output_format,
                       hide_output=hide_output)
+
+    def _te_refinement(self):
+        """
+        Refines trailing edge to correct points which slightly overlap at the trailing edge
+        don't use this method regularly, only use for optimization cases or randomly generated airfoils
+        """
+        for i in range(len(self.upper_surface)):
+            if self.upper_surface[i][1] < .96:
+                return 0
+            if self.lower_surface[i][0] > self.upper_surface[i][0]:
+                self.lower_surface[i][1] = self.upper_surface[i][1] - 1e-6
+                print('Bad airfoil geometry, fixing trailing edge')
+        self.points = self.upper_surface[:-1] + self.lower_surface[::-1]
+
+    def write_airfoil_file(self, file_name):
+        with open(file_name, 'w') as file:
+            for point in self.points:
+                file.writelines(str(point[0]) + ' ' + str(point[1]) + '\n')
 
 
 class cst_Airfoil(Airfoil):

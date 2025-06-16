@@ -205,16 +205,17 @@ def generate_mesh(airfoil, show_graphics: bool = True, output_format: str = '.su
     model.mesh.setTransfiniteSurface(bottom_wake_section)
     model.mesh.setRecombine(2, bottom_wake_section)
 
-    model.addPhysicalGroup(1, [af_le, af_lower, af_upper], name='Airfoil')
-    model.addPhysicalGroup(1, [outlet_top, outlet_bottom, top_line, top_wake_line, bottom_line, bottom_wake_line], name='Outlet')
-    model.addPhysicalGroup(1, [front_line], name='Inlet')
+    model.addPhysicalGroup(1, [af_le, af_lower, af_upper], name='AIRFOIL')
+    model.addPhysicalGroup(1, [outlet_top, outlet_bottom, top_line, top_wake_line, bottom_line, bottom_wake_line], name='OUTLET')
+    model.addPhysicalGroup(1, [front_line], name='INLET')
 
     model.addPhysicalGroup(2, [inlet_section, top_section, top_wake_section, bottom_section, bottom_wake_section],
-                           name='FlowDomain')
+                           name='FLOWDOMAIN')
 
     # volume = model.extrude([(2, flow_domain)], 0, 0, 1)
     # gmsh.option.setNumber('Mesh.SaveAll', 1)
     model.synchronize()
+
 
     gmsh.model.mesh.generate(2)
     file_path = airfoil.name + '.su2'
@@ -248,14 +249,14 @@ class mesh_parameters:
     """
     def __init__(self):
         self.first_cell_thickness = 1e-5     # Desired thickness at first layer on boundary layer
-        self.trailing_edge_thickness = 5e-2  # Desired cell thickness at trailing edge
+        self.trailing_edge_thickness = 1e-2  # Desired cell thickness at trailing edge
         self.inlet_radius = 15               # Radius of the inlet, defines domain length to the front, top and bottom of airfoil
         self.downstream_distance = 25        # Domain length downstream of airfoil
-        self.n_airfoil = 150                 # Number of points to be used on the top and bottom surfaces of airfoil
+        self.n_airfoil = 200               # Number of points to be used on the top and bottom surfaces of airfoil
         self.n_volume = 125                  # Number of points between airfoil and inlet
         self.n_wake = 150                    # Number of points behind the airfoil
-        self.n_leading_edge = 50             # Number of points on the curved leading edge of airfoil
-        self.leading_edge_length = .1        # Distance at which the leading edge of the airfoil is defined
+        self.n_leading_edge = 100             # Number of points on the curved leading edge of airfoil
+        self.leading_edge_length = .05        # Distance at which the leading edge of the airfoil is defined
         self.boundary_growth = 0
         self.te_growth = 0
 
