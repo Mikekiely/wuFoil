@@ -106,6 +106,30 @@ af.mesh_parameters.n_airfoil = 125
 af.set_desired_yplus(1)
 af.generate_mesh()
 ```
+
+As a side Note - the meshing included in WuFoil will work for most cases, however struggles in cases with transonic and 
+viscous effects. At some point I would like to try to fix this and improve the meshing, however in the two years this code 
+has been published I just haven't had the time. Instead, for detailed analysis of complex airfoils I would recommend using
+the code PyAero (https://github.com/chiefenne/PyAero). I included a file in Scripts which just automates the batch run process
+for PyAero, assuming it is installed in a directory in your current working directory called "PyAero". This will typically
+generate a better mesh than WuFoil is capable of. To use it, use the following code.
+
+```python
+import wuFoil as wf
+from Scripts.PyAero_meshing import generate_PyAero_mesh
+
+af = wf.airfoil('rae2822')
+generate_PyAero_mesh(af)
+```
+To edit the mesh parameters, you need to go to PyAero/data/Batch/batch_control.json and change the values there. If you 
+getting a TypeError when you are trying to export an SU2 mesh using PyAero, it is an error int he code Meshio. The fix 
+suggested here worked for me. https://github.com/chiefenne/PyAero/issues/28 
+
+Also note if you are using your own PyAero mesh, the default markers for surfaces are different between the codes for 
+SU2 meshes. You will need to go into WuFoil/base.cfg and change the AIRFOIL marker to 0 and all other markers to 1
+
+
+
 ### Analysis
 #### SU2
 Running an SU2 analysis requires the user to first set the flight conditions (altitude and mach) and generate the mesh 
