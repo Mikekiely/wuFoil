@@ -1,13 +1,9 @@
 import os
 import subprocess
 import logging
-from wuFoil.flight_conditions import FlightConditions
 import pandas as pd
 from io import StringIO
 from wuFoil.airfoil import Airfoil
-from threading import Timer
-import signal
-import sys
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
