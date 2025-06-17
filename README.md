@@ -152,7 +152,7 @@ import wuFoil as wf
 af = wf.airfoil('rae2822', chord_lenght=1, name='rae2822')
 # Set flight conditions. Note: input units must be 'ft' or 'm' and must stay consistent with chord length
 af.set_flight_conditons(altitude=35000, mach=0.78, input_units='ft', cl=.7)
-af.generate_mesh(hide_output=True, show_graphics=False) # Hide all gmsh output
+af.generate_mesh(hide_output=True, show_graphics=False) # Hide all gmsh data
 
 # Run SU2 analysis
 analysis = wf.SU2_Analysis(af)

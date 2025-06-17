@@ -23,14 +23,15 @@ def _test_sample(af, method, params, i, output_file=None, output_parameters=None
     af.name = prefix
 
     # Check for bad airfoil geometry
-    for point_l, point_u in zip(af.lower_surface, reversed(af.upper_surface)):
+    af._te_refinement()
+    for point_l, point_u in zip(af.lower_surface, af.upper_surface):
         if point_l[1] > point_u[1]:
             logger.warning('Bad Airfoil Geometry')
             return None, None, None
 
-    if af.lower_surface[1][1] > 0 or af.upper_surface[1][1] < 0:
-        logger.warning(('Bad Airfoil Geometry'))
-        return None, None, None
+    # if af.lower_surface[1][1] > 0 or af.upper_surface[1][1] < 0:
+    #     logger.warning(('Bad Airfoil Geometry'))
+    #     return None, None, None
 
     # Initiate analysis
     if method.startswith('SU2'):
@@ -55,7 +56,7 @@ def _test_sample(af, method, params, i, output_file=None, output_parameters=None
         except:
             pass
 
-    # Put output into queue to be printed to csv
+    # Put data into queue to be printed to csv
     if output_file:
         output = []
         output_cst = False
@@ -110,15 +111,15 @@ def analyze_batch(airfoils: list[Airfoil], n_processes: int = None, analysis_met
 
     Parameters:
     -   airfoils: <list(airfoil objects)> list of airfoils to be analyzed. If they are cst airfoils make sure they have the same number of variables
-    -   output_file: <str> csv file  to output values to, won't output to a file if no file is inputted
+    -   output_file: <str> csv file  to data values to, won't data to a file if no file is inputted
                     Add headers to file
-    -   output_parameters: <list> list of variables to output to csv file, name must be the same as they appear in the
+    -   output_parameters: <list> list of variables to data to csv file, name must be the same as they appear in the
                             analysis class
     -   n_processes: number of parallel processes to run, defaults to number of available processors
     -   altitude: Altitude at which the airfoil is operating. Either a constant value for all airfoils or a list of values
     -   analysis_method: Type of analysis run. 'SU2' or 'xfoil'
     -   analysis_parameters: List of variables to change in analysis
-    -   sort_output_by: Sorts output in csv file by the inputted analysis variable
+    -   sort_output_by: Sorts data in csv file by the inputted analysis variable
 
     Returns:
     -   cl: list of calculated cl values
@@ -147,7 +148,7 @@ def analyze_batch(airfoils: list[Airfoil], n_processes: int = None, analysis_met
     # Start parallel processes
     jobs = []
 
-    # handle output files
+    # handle data files
     if output_file:
         # Check if cst variables is in output_parameters. If it is, add a0 through an to headers
         headers = output_parameters.copy()
@@ -156,11 +157,11 @@ def analyze_batch(airfoils: list[Airfoil], n_processes: int = None, analysis_met
             headers.pop(cst_index)
             headers.extend([f'a{i}' for i in range(len(airfoils[0].cst_variables))])
 
-        # Check if output file exists and is empty, delete it if so
+        # Check if data file exists and is empty, delete it if so
         if os.path.exists(output_file) and os.stat(output_file).st_size == 0:
             os.remove(output_file)
 
-        # Check output file if it exists
+        # Check data file if it exists
         if os.path.exists(output_file):
 
             # Output file exists, make sure its a csv
@@ -168,19 +169,19 @@ def analyze_batch(airfoils: list[Airfoil], n_processes: int = None, analysis_met
                 logger.error('Output file must be formatted as a csv')
                 return
 
-            # Check headers of output file
+            # Check headers of data file
             with open(output_file, 'r', newline='') as file:
                 reader = csv.reader(file)
                 headers_csv = next(reader, [])
 
-                # Check if headers in prexisting file match output parameters
+                # Check if headers in prexisting file match data parameters
                 # print(headers_csv)
                 # print(headers)
                 if headers_csv != headers:
-                    logger.error(f'Headers in pre existing csv file do not match desired output parameters')
+                    logger.error(f'Headers in pre existing csv file do not match desired data parameters')
                     return
         else:
-            # output file doesn't exist, create it
+            # data file doesn't exist, create it
             with open(output_file, 'w', newline='') as file:
                 csv.writer(file).writerow(headers)
 

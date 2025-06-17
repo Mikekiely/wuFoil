@@ -22,7 +22,7 @@ class SU2_Analysis:
     -   aoa: <float or list of floats> angle of attack (degrees)
     -   cl: <float or list of floats> lift coefficient
     -   convergence: <float> su2 convergence criteria, log10 of density residual
-    -   hide_output: <bool> Used to mute the output to screen
+    -   hide_output: <bool> Used to mute the data to screen
     -   altitude: <float> altitude in ft
     -   mach: <float> mach number
     -   Processes: <int> used for multi processing, number of processors used
@@ -80,23 +80,28 @@ class SU2_Analysis:
         #     return
 
         # print(os.path.exists(f'{self.prefix}.su2'))
-        if not os.path.exists(f'{self.prefix}.su2'):
-            self.airfoil.generate_mesh(show_graphics=False, hide_output=True)
+        mesh_file_path = self.airfoil.mesh_dir / self.airfoil.name
+        mesh_file_path = str(mesh_file_path) + '.su2'
+        if not os.path.exists(mesh_file_path):
+            print('Please generate mesh first')
 
         self.write_cfg_file()
 
         # Create commands to run SU2
         commands = ''
+        file_name = f'{self.prefix}.cfg'
+        # commands += f"cd {self.airfoil.base_dir}\n"
         if self.n_processes > 1:
             commands += f"mpiexec -n {self.n_processes} "
-        commands += f"SU2_CFD {self.prefix}.cfg"
+        commands += f"SU2_CFD {str(file_name)}"
+        print(commands)
         try:
             if self.hide_output:
                 proc = subprocess.Popen(['cmd', '/c', commands], shell=False, env=os.environ, stdin=subprocess.PIPE,
-                                        stdout=subprocess.DEVNULL, start_new_session=True)
+                                        stdout=subprocess.DEVNULL, start_new_session=True, cwd=self.airfoil.base_dir)
             else:
                 proc = subprocess.Popen(['cmd', '/c', commands], shell=False, stdin=subprocess.PIPE, env=os.environ,
-                                        start_new_session=True)
+                                        start_new_session=True,  cwd=self.airfoil.base_dir)
 
             try:
                 stdout, stderr = proc.communicate()
@@ -118,12 +123,14 @@ class SU2_Analysis:
         """
         dir = os.path.dirname(os.path.abspath(__file__))
         base_file = os.path.join(dir, 'base.cfg')
+        path = self.airfoil.base_dir
         with open(base_file, 'r') as f:
             lines = f.readlines()
         newlines = []
         # TODO fix this elif chain
-        # Its like 3 am and I'm tired
-        with open(f'{self.prefix}.cfg', 'w') as f:
+        file_name = f'{self.prefix}.cfg'
+        file_path = path / file_name
+        with open(file_path, 'w') as f:
             for line in lines:
                 if line.startswith('SOLVER'):
                     line = f'SOLVER= {self.solver.upper()}\n'
@@ -165,10 +172,13 @@ class SU2_Analysis:
 
     def read_output(self):
         """
-        Load history file and set output variables
+        Load history file and set data variables
         """
         # Load history file
-        df = pd.read_csv(f'{self.prefix}_history.csv', sep=r'\s*,\s*', engine='python')
+        path = self.airfoil.base_dir
+        file_name = f'{self.prefix}_history.csv'
+        file_path = path / file_name
+        df = pd.read_csv(file_path, sep=r'\s*,\s*', engine='python')
         # Make sure convergence was reached
         self.cd = []
         self.cl = []
@@ -188,7 +198,7 @@ class xfoil_analysis:
     -   airfoil: airfoil to be tested
     -   aoa: <float or list of floats> angle of attack (degrees)
     -   cl: <float or list of floats> lift coefficient
-    -   hide_output: <bool> Used to mute the output to screen
+    -   hide_output: <bool> Used to mute the data to screen
     -   altitude: <float> altitude in ft
     -   mach: <float> mach number
     -   max_iter: <int> maximum number of iterations used in su2 simulation
@@ -198,7 +208,7 @@ class xfoil_analysis:
     cl = []
     cd = []
     airfoil = []
-    output_file = 'output.dat'
+    output_file = 'data.dat'
     x_tr_top = []       # transition points
     x_tr_bottom = []
 
@@ -239,7 +249,7 @@ class xfoil_analysis:
         """
         Creates keystrokes for xfoil analysis, runs xfoil
         """
-        # Delete output file if it exists
+        # Delete data file if it exists
         if os.path.exists(self.output_file):
             os.remove(self.output_file)
 

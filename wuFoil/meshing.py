@@ -4,10 +4,11 @@ from contextlib import contextmanager
 import gmsh
 from scipy.interpolate import splprep, splev
 import numpy as np
+import time
 
 
 def generate_mesh(airfoil, show_graphics: bool = True, output_format: str = '.su2',
-                  hide_output: bool = True):
+                  hide_output: bool = True, directory=None):
     """
     Creates C-block mesh around airfoil using gmsh
     stores result in file airfoil.su2
@@ -17,7 +18,7 @@ def generate_mesh(airfoil, show_graphics: bool = True, output_format: str = '.su
     Uses the dictionary mesh_parameters to model mesh
     Interpolates airfoil using cubic splines across whole closed loop for accuracy
 
-    Currently only works with SU2 output format, I may add CGNS in the future
+    Currently only works with SU2 data format, I may add CGNS in the future
     Use meshio or something else to convert the mesh to another format if you want for now
 
     Naming conventions (can get very confusing, this is as much for me as it is for anyone else)
@@ -30,7 +31,7 @@ def generate_mesh(airfoil, show_graphics: bool = True, output_format: str = '.su
     Parameters:
     -   Airfoil: <airfoil> airfoil or cst_airfoil object
     -   show_graphics: <bool> yes or no show gmsh gui
-    -   output_format: <str> format of mesh to output (not currently used)
+    -   output_format: <str> format of mesh to data (not currently used)
     """
     length_le = airfoil.mesh_parameters.leading_edge_length * airfoil.chord_length
     te_thickness = airfoil.mesh_parameters.trailing_edge_thickness  * airfoil.chord_length
@@ -81,7 +82,7 @@ def generate_mesh(airfoil, show_graphics: bool = True, output_format: str = '.su
     gmsh.initialize()
     gmsh.model.add(airfoil.name)
 
-    # hide output if specified
+    # hide data if specified
     if hide_output:
         gmsh.option.setNumber("General.Terminal", 0)
 
@@ -218,7 +219,8 @@ def generate_mesh(airfoil, show_graphics: bool = True, output_format: str = '.su
 
 
     gmsh.model.mesh.generate(2)
-    file_path = airfoil.name + '.su2'
+    file_name = f'{airfoil.name}.su2'
+    file_path = str(directory / file_name)
     gmsh.write(file_path)
     gmsh.option.setNumber("Mesh.SurfaceFaces", 1)
     if show_graphics:
@@ -229,7 +231,9 @@ def generate_mesh(airfoil, show_graphics: bool = True, output_format: str = '.su
     # GMSH forces you to add a named marker for the volume elements, use this to remove it
     # Create a temporary file to write the modified content
     temp_file_path = file_path + '.temp'
-    with open(file_path, 'r') as source_file, open(temp_file_path, 'w') as temp_file:
+    # Read from source and write to temp
+    with open(file_path, 'r') as source_file:
+        lines = []
         found_target_line = False
         for line in source_file:
             if line.startswith('NMARK'):
@@ -237,10 +241,24 @@ def generate_mesh(airfoil, show_graphics: bool = True, output_format: str = '.su
             if line.strip() == 'MARKER_TAG= FlowDomain':
                 found_target_line = True
             if not found_target_line:
-                temp_file.write(line)
+                lines.append(line)
+    with open(temp_file_path, 'w') as temp_file:
+        temp_file.writelines(lines)
+    time.sleep(.05)
+    os.replace(temp_file_path, file_path)
+
+    # with open(file_path, 'r') as source_file, open(temp_file_path, 'w') as temp_file:
+    #     found_target_line = False
+    #     for line in source_file:
+    #         if line.startswith('NMARK'):
+    #             line = 'NMARK= 3\n'
+    #         if line.strip() == 'MARKER_TAG= FlowDomain':
+    #             found_target_line = True
+    #         if not found_target_line:
+    #             temp_file.write(line)
 
     # Replace the original file with the temporary file
-    os.replace(temp_file_path, file_path)
+    # os.replace(temp_file_path, file_path)
 
 
 class mesh_parameters:

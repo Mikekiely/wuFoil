@@ -7,6 +7,7 @@ from scipy.interpolate import splprep, splev
 from scipy.optimize import minimize
 from wuFoil.flight_conditions import FlightConditions
 from wuFoil.meshing import mesh_parameters, generate_mesh
+from wuFoil.runner import setup_output_paths
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -71,12 +72,11 @@ class Airfoil:
         self.read_input(dat_file)
         self.mesh_parameters = mesh_parameters()
         self.chord_length = chord_length
+        self.base_dir, self.mesh_dir, self.results_dir, self.airfoil_dir = setup_output_paths()
         # self.set_tc_camber()
 
     def set_flight_conditions(self, altitude, mach, aoa = None, cl = None, input_units='ft'):
         self.flight_conditions = FlightConditions(altitude, mach, self.chord_length, aoa=aoa, cl=cl, input_units=input_units)
-        # if input_units=='ft':
-        #     self.chord_length *= .3048
 
     def read_input(self, dat_file: str):
         """
@@ -323,7 +323,7 @@ class Airfoil:
         # Just a way to generate the mesh through the airfoil class
         # Let me know if this is bad practice, it seems fine to me I don't want to write a multi hundred line code here
         generate_mesh(self, show_graphics=show_graphics, output_format=output_format,
-                      hide_output=hide_output)
+                      hide_output=hide_output, directory=self.mesh_dir)
 
     def _te_refinement(self):
         """
@@ -397,6 +397,7 @@ class cst_Airfoil(Airfoil):
         self.a_u = a[mid:]
         self.set_cst_shape(n_airfoil=n_airfoil, leading_edge_refinement=leading_edge_refinement)
         self.mesh_parameters = mesh_parameters()
+        self.base_dir, self.mesh_dir, self.results_dir, self.airfoil_dir = setup_output_paths()
 
     def set_cst_shape(self, n_airfoil: int = 100, leading_edge_refinement=True):
         """

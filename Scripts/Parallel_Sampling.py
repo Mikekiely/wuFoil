@@ -7,7 +7,7 @@ import numpy as np
 import uuid
 
 """
-Use this script to gather samples in parallel and output into csv file
+Use this script to gather samples in parallel and data into csv file
 This is useful for creating databases for machine learning algorithms
 
 Randomizes variables based on normal distribution from base variables
