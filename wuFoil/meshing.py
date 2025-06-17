@@ -1,14 +1,11 @@
-import io
-import os, sys
-from contextlib import contextmanager
-import gmsh
-from scipy.interpolate import splprep, splev
+import os
 import numpy as np
 import time
 
 
 def generate_mesh(airfoil, show_graphics: bool = True, output_format: str = '.su2',
                   hide_output: bool = True, directory=None):
+    import gmsh
     """
     Creates C-block mesh around airfoil using gmsh
     stores result in file airfoil.su2
